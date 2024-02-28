@@ -9,6 +9,7 @@ import dev.langchain4j.model.StreamingResponseHandler
 import dev.langchain4j.model.chat.ChatLanguageModel
 import dev.langchain4j.model.chat.StreamingChatLanguageModel
 import dev.langchain4j.model.embedding.AllMiniLmL6V2EmbeddingModel
+import dev.langchain4j.model.input.Prompt
 import dev.langchain4j.model.input.PromptTemplate
 import dev.langchain4j.model.openai.OpenAiChatModel
 import dev.langchain4j.model.openai.OpenAiModelName
@@ -74,6 +75,13 @@ class RAG {
         Here are the contexts of the question:
             
         Remember, based on the original question and related contexts, suggest three such further questions. Do NOT repeat the original question. Each related question should be no longer than 20 words. Here is the original question:
+    """.trimIndent()
+
+    private val translateToEnText = """
+        You are a language AI assistant. 
+        Please translate the text to English. 
+        Your translation must be accurate and written in a professional tone. 
+        Here are the text:
     """.trimIndent()
 
     fun search(question: String): String {
@@ -262,6 +270,14 @@ class RAG {
         variables["context"] = context
 
         val prompt = promptTemplate.apply(variables)
+        val messages = listOf(prompt.toSystemMessage(), UserMessage(question))
+        val response = chatModel.generate(messages)
+        return response.content().text()
+    }
+
+    fun translateToEn(question: String): String {
+        val chatModel = getModel()
+        val prompt = Prompt.from(translateToEnText);
         val messages = listOf(prompt.toSystemMessage(), UserMessage(question))
         val response = chatModel.generate(messages)
         return response.content().text()

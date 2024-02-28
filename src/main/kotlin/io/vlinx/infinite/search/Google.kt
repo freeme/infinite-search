@@ -21,6 +21,7 @@ class Google : SearchEngine {
     lateinit var settings: Settings
 
     override fun search(keyword: String): List<SearchResult> {
+
         val url = makeSearchUrl(keyword)
         val content = HttpUtils.get(url)
         val map = JSONUtils.fromJson<Map<String, String>>(content)!!
@@ -29,7 +30,8 @@ class Google : SearchEngine {
         }
 
         var items = map["items"] as List<Map<String, String>>
-        items = items.subList(0, settings.searchItemsLimit)
+        var subTo = if (items.size > settings.searchItemsLimit) settings.searchItemsLimit else items.size;
+        items = items.subList(0, subTo);
 
         val results = mutableListOf<SearchResult>()
 
@@ -47,11 +49,13 @@ class Google : SearchEngine {
 
 
     private fun makeSearchUrl(keyword: String): String {
+//        return "${settings.googleSearchEndpoint}?key=${settings.googleSearchApiKey}&cx=${settings.googleSearchEngineId}&q=${
+//            URLEncoder.encode(
+//                keyword, "UTF-8"
+//            )
+//        }"
         return "${settings.googleSearchEndpoint}?key=${settings.googleSearchApiKey}&cx=${settings.googleSearchEngineId}&q=${
-            URLEncoder.encode(
-                keyword, "UTF-8"
-            )
-        }"
+            URLEncoder.encode(keyword, "UTF-8")}&siteSearch=${URLEncoder.encode("aihelp.net", "UTF-8")}"
 
     }
 

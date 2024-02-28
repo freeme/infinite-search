@@ -50,16 +50,24 @@ class SearchController {
         val writer = response.outputStream.writer()
         try {
             val map = JSONUtils.fromJson<HashMap<String, String>>(payload)!!
-            val query = map["query"]!!
-            if (query.isBlank()) {
+            val originalQuery = map["query"]!!
+            if (originalQuery.isBlank()) {
                 throw SearchException("query is blank")
             }
-            logger.info("RAG Search: $query")
+            logger.info("RAG Search: $originalQuery")
+
+            val query = rag.translateToEn(originalQuery);
+
+            logger.info("RAG Search En: $query")
+
+
 
             response.setHeader("Content-Type", "text/event-stream")
             response.contentType = "text/event-stream"
             response.characterEncoding = "UTF-8"
             response.setHeader("Pragma", "no-cache")
+
+
 
             val searchResults = google.search(query)
 
@@ -109,8 +117,8 @@ class SearchController {
             list.add(map)
         }
 
-
-        return JSONUtils.toJson(list.subList(0, settings.relatedQuestionsLimit))
+//        return JSONUtils.toJson(list.subList(0, subTo))
+        return JSONUtils.toJson(list)
     }
 
 
